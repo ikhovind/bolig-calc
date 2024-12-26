@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .calculator-wrapper {
+      display: flex;
+      gap: 20px; /* Space between the two forms */
+    }
+    .calculator-container {
+      display: flex;
+      flex-direction: column;
+      max-width: 400px;
+    }
+    .results-container {
+      margin-top: 10px;
+    }
+    label {
+      margin-top: 10px;
+      display: block;
+    }
+    .input-field {
+      width: 100%; /* Make input fields full width */
+      box-sizing: border-box; /* Include padding and border in element's total width and height */
+    }
+    .position-relative {
+      position: relative;
+    }
+    .with-unit::after {
+      content: "år"; /* Text to display */
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none; /* Prevents text from interfering with input */
+      color: #999; /* Optional, makes the text a bit lighter */
+    }
+    .results-container {
+      width: 900px;
+      border: 1px solid black;
+      overflow: hidden; /* add this to contain floated children */
+    }
+    .real-estate-container {
+      width: 400px;
+      float:left; /* add this */
+      border: 1px solid red;
+    }
+    .rental-container {
+      border: 1px solid green;
+      float: left; /* add this */
+    }
+
+  </style>
+</head>
+<body>
+<h1>Leie eller eie:</h1>
+<div class="calculator-wrapper">
+  <div class="calculator-container">
+    <h2>Kjøp av bolig:</h2>
+    <label>
+      Kjøpspris bolig:
+    </label>
+    <input type="number" id="homeCost" step="0.01" class="input-field">
+
+    <label>
+      Egenkapital:
+    </label>
+    <input type="number" id="downpayment" step="0.01" class="input-field">
+
+    <label>
+      Rente på lån (%):
+    </label>
+    <input type="number" id="interestRate" step="0.01" class="input-field">
+
+    <label>
+      Nedbetalingstid boliglån:
+    </label>
+    <div class="position-relative">
+      <input type="number" id="mortgageLength" step="1" class="input-field with-unit">
+    </div>
+
+    <label>
+      Felleskostnader per månded:
+    </label>
+    <div class="position-relative">
+      <input type="number" id="hoaCosts" step="1" class="input-field with-unit">
+    </div>
+
+    <label>
+      Kostnader ved boligkjøp:
+    </label>
+    <input type="number" id="otherFees" step="0.01" class="input-field">
+    <label>
+      Kostnader ved boligsalg (i %):
+    </label>
+    <input type="number" id="sellingFees" step="0.01" class="input-field">
+
+    <label>
+      <input type="checkbox" id="selveier">
+      Selveier?
+    </label>
+
+    <label>
+      Antall år du skal bo i boligen:
+    </label>
+    <input type="number" id="yearsInHouse" step="1" class="input-field">
+
+    <label>
+      Forventet prisøkning på bolig (% i året):
+    </label>
+    <input type="number" id="houseAppreciation" step="0.01" class="input-field">
+  </div>
+  <div class="calculator-container">
+    <h2>Kostnader ved å leie bolig</h2>
+    <label>
+      Leiepris per måned:
+    </label>
+    <input type="number" id="rentCost" step=".01" class="input-field">
+    <label>
+      Forventet økning i leiekostnader per år (%):
+    </label>
+    <input type="number" id="increaseInRentalCost" step="0.01" class="input-field">
+
+    <label>
+      Forventet avkastning på alternativ investering (%):
+    </label>
+    <input type="number" id="altInvestmentReturn" step="0.01" class="input-field">
+  </div>
+</div>
+<button onclick="calculate()">Calculate</button>
+<div class="results-container">
+  <div class="real-estate-container">
+    <h3>Oversikt ved boligkjøp:</h3>
+    <p>Sum av innbetalinger til lånet: <span id="loanPayments"></span></p>
+    <p>Sum av betalt rente: <span id="interestPayments"></span></p>
+    <p>Sum rentefradrag: <span id="interestTaxDeduction"></span></p>
+    <p>Gjenværende lån: <span id="remainingLoan"></span></p>
+    <p>Boligverdi ved flytting: <span id="futureRealEstateValue"></span></p>
+    <p>Sum avgifter og ekstrakostnader ved boligkjøp: <span id="initialCosts"></span></p>
+    <p>Netto formue med kjøp av bolig: <span id="realEstateNetWorth"></span></p>
+  </div>
+  <div class="rental-container">
+    <p>Sum av leiekostnader: <span id="rentSum"></span></p>
+    <p>Netto formue med alternativ investering: <span id="altInvestmentValue"></span></p>
+  </div>
+</div>
+
+<script>
+  function calculate() {
+    const currencyFormat = Intl.NumberFormat("no-NB", { style: 'currency', currency: 'NOK' });
+    const homeCost = parseFloat(document.getElementById('homeCost').value) || 0;
+    const downpayment = parseFloat(document.getElementById('downpayment').value) || 0;
+    const interestRate = parseFloat(document.getElementById('interestRate').value) / 100 || 0;
+    const hoaCosts = parseFloat(document.getElementById('hoaCosts').value) || 0;
+    const mortgageLength = parseInt(document.getElementById('mortgageLength').value) || 0;
+    const yearsInHouse = parseInt(document.getElementById('yearsInHouse').value) || 0;
+    let rentCost = parseFloat(document.getElementById('rentCost').value) || 0;
+    const otherFees = parseFloat(document.getElementById('otherFees').value) || 0;
+    const houseAppreciation = parseFloat(document.getElementById('houseAppreciation').value) / 100 || 0;
+    const alternativeInvestmentReturn = parseFloat(document.getElementById('altInvestmentReturn').value) / 100 || 0;
+    const increaseInRentalCosts = parseFloat(document.getElementById('increaseInRentalCost').value) / 100 || 0;
+    const sellingFeePercentage = parseFloat(document.getElementById('sellingFees').value) / 100 || 0;
+
+    const loanAmount = homeCost - downpayment;
+    const monthlyInterestRate = interestRate / 12;
+    const monthlyAltReturn = alternativeInvestmentReturn / 12;
+    const numMortgagePayments = mortgageLength * 12;
+
+    const selveier = document.getElementById('selveier').checked;
+    const documentFee = selveier ? 0.025 * homeCost : 0;
+    const totalInitialCosts = documentFee + otherFees;
+
+    let remainingBalance = loanAmount;
+    let totalInterestPaid = 0;
+    let futureHomeValue = homeCost * Math.pow(1 + houseAppreciation, yearsInHouse);
+    let alternativeCost = downpayment + totalInitialCosts;
+    const monthlyPayment = loanAmount * monthlyInterestRate / (1 - Math.pow(1 + monthlyInterestRate, -numMortgagePayments));
+
+    for (let year = 0; year < yearsInHouse; year++) {
+      for (let month = 0; month < 12; month++) {
+        const monthlyInterest = (remainingBalance * monthlyInterestRate);
+        const interestTaxReturn = monthlyInterest * 0.22;
+        const principalPaid = monthlyPayment - monthlyInterest;
+        alternativeCost = alternativeCost * (1 + monthlyAltReturn) + monthlyPayment + hoaCosts - interestTaxReturn - rentCost;
+
+        totalInterestPaid += monthlyInterest;
+        remainingBalance -= principalPaid;
+      }
+      rentCost *= (1 + increaseInRentalCosts);
+    }
+
+    const totalPayment = monthlyPayment * yearsInHouse * 12;
+    const sellingFee = sellingFeePercentage * futureHomeValue;
+    const totalFees = totalInitialCosts + sellingFee;
+    document.getElementById('initialCosts').textContent = currencyFormat.format(totalFees.toFixed(2));
+    document.getElementById('interestPayments').textContent = currencyFormat.format(totalInterestPaid.toFixed(0));
+    document.getElementById('interestTaxDeduction').textContent = currencyFormat.format((totalInterestPaid * 0.22).toFixed(1));
+    document.getElementById('loanPayments').textContent = currencyFormat.format(totalPayment.toFixed(2));
+    document.getElementById('remainingLoan').textContent = currencyFormat.format(remainingBalance.toFixed(2));
+    document.getElementById('rentSum').textContent = currencyFormat.format((rentCost * yearsInHouse * 12).toFixed(2));
+    document.getElementById('futureRealEstateValue').textContent = currencyFormat.format((futureHomeValue).toFixed(2));
+
+    document.getElementById('realEstateNetWorth').textContent = currencyFormat.format((futureHomeValue - remainingBalance - sellingFee).toFixed(2));
+    document.getElementById('altInvestmentValue').textContent = currencyFormat.format((alternativeCost).toFixed(2));
+  }
+</script>
+</body>
+</html>
